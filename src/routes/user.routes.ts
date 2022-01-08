@@ -10,3 +10,4 @@ router.post('/register-user', userController.registerUser);
 
 // Exportamos router para usar rutas en app.ts
 export default router;
+

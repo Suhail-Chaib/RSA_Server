@@ -4,6 +4,7 @@ import { PublicKey } from "../../../RSA-Module";
 import { PrivateKey } from "../../../RSA-Module";
 const homeModel = require("../models/home");
 const Data = require("../models/data");
+const Data2 = require("../models/data2");
 const User = require("../models/user");
 const publicKeyModel = require("../models/publicKey");
 const privateKeyModel = require("../models/privateKey");
@@ -31,6 +32,22 @@ const generatePublicKey = async (req: Request, res: Response) => {
       } catch(err) {
           return res.status(500).json(err);
       }
+
+}
+
+const getData2 = async (req: Request, res: Response) => {
+
+  try{
+     console.log(req.params.password);
+      const results = await User.find({"password": req.params.password});
+      console.log(results[0].publicKey[0].n);
+
+      const data = await Data2.find({"keyB": results[0].publicKey[0].n},{"_id":0, "data":1, "keyA": 1});
+      return res.status(200).json(data);
+      
+  } catch (err) {
+      return res.status(404).json(err);
+  }
 
 }
 
@@ -86,30 +103,34 @@ const getPublicKey = async (req: Request, res: Response) => {
   }
 }
 
-/*const encrypt = async (req: Request, res: Response) => {
 
-    const user = new homeModel(req.body);
+const postSigned = async (req: Request, res: Response) => {
   
-    try {
-      await user.save();
-      res.send(user);
-    } catch (error) {
-      res.status(500).send(error);
-    }
+  try{
 
-    /*const rsa = new RSA();
-    await rsa.generateRandomKeys()
+    let data = req.body.data
+    let keyA = req.body.keyA
+    let keyB = req.body.keyB;
 
-    let text = req.body;
+    console.log(data);
+    console.log(keyA);
+    console.log(keyB);
 
-    const x =  rsa.publicKey.encrypt(bc.textToBigint(text.text));
-    console.log("Texto encriptado: " + x);*/
+    let info = new Data2({
+      "data": data,
+      "keyA": keyA,
+      "keyB": keyB
+    });
 
-    //const y = rsa.privateKey.decrypt(x);
-    //console.log("Texto decriptado: " + bc.bigintToText(y));
+    info.save().then(() => {
+      return res.status(201).json("User created successfully!");
+    });
 
-//}
+  } catch (err) {
+    return res.status(404).json(err);
+  }  
 
+}
 
 const postEncrypted = async (req: Request, res: Response) => {
 
@@ -165,4 +186,4 @@ const postEncrypted = async (req: Request, res: Response) => {
 
 }
 
-export default {generatePublicKey, getPublicKey, postEncrypted, getData, getPrivateKey, getUser}
+export default {generatePublicKey, getPublicKey, postEncrypted, getData, getPrivateKey, getUser, postSigned, getData2}

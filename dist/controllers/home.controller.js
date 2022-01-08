@@ -14,6 +14,7 @@ const RSA_Module_2 = require("../../../RSA-Module");
 const RSA_Module_3 = require("../../../RSA-Module");
 const homeModel = require("../models/home");
 const Data = require("../models/data");
+const Data2 = require("../models/data2");
 const User = require("../models/user");
 const publicKeyModel = require("../models/publicKey");
 const privateKeyModel = require("../models/privateKey");
@@ -36,6 +37,18 @@ const generatePublicKey = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (err) {
         return res.status(500).json(err);
+    }
+});
+const getData2 = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(req.params.password);
+        const results = yield User.find({ "password": req.params.password });
+        console.log(results[0].publicKey[0].n);
+        const data = yield Data2.find({ "keyB": results[0].publicKey[0].n }, { "_id": 0, "data": 1, "keyA": 1 });
+        return res.status(200).json(data);
+    }
+    catch (err) {
+        return res.status(404).json(err);
     }
 });
 const getData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -71,6 +84,27 @@ const getPublicKey = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const results = yield publicKeyModel.find({ "password": req.params.password });
         return res.status(200).json(results);
+    }
+    catch (err) {
+        return res.status(404).json(err);
+    }
+});
+const postSigned = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let data = req.body.data;
+        let keyA = req.body.keyA;
+        let keyB = req.body.keyB;
+        console.log(data);
+        console.log(keyA);
+        console.log(keyB);
+        let info = new Data2({
+            "data": data,
+            "keyA": keyA,
+            "keyB": keyB
+        });
+        info.save().then(() => {
+            return res.status(201).json("User created successfully!");
+        });
     }
     catch (err) {
         return res.status(404).json(err);
@@ -117,5 +151,5 @@ const postEncrypted = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     save().then(res => encrypt());
 });
-exports.default = { generatePublicKey, getPublicKey, postEncrypted, getData, getPrivateKey, getUser };
+exports.default = { generatePublicKey, getPublicKey, postEncrypted, getData, getPrivateKey, getUser, postSigned, getData2 };
 //# sourceMappingURL=home.controller.js.map
